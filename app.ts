@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response } from "express";
 export const app = express();
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { errorMiddleware } from "./middleware/errorMiddleware";
 require("dotenv").config();
 
 //body parser
@@ -31,4 +32,5 @@ app.all("*", (req: Request, res: Response, next: NextFunction) => {
   next(err);
 });
 
+app.use(errorMiddleware);
 //1:34
