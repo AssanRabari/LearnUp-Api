@@ -3,6 +3,7 @@ export const app = express();
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { errorMiddleware } from "./middleware/errorMiddleware";
+import userRouter from "./routes/user.route";
 require("dotenv").config();
 
 //body parser
@@ -26,6 +27,8 @@ app.get("/test", (req: Request, res: Response, next: NextFunction) => {
   });
 });
 
+//routes
+app.use("/api/v1", userRouter);
 app.all("*", (req: Request, res: Response, next: NextFunction) => {
   const err = new Error(`(Route ${req.originalUrl} not found )`) as any;
   err.statusCode = 404;
@@ -33,4 +36,4 @@ app.all("*", (req: Request, res: Response, next: NextFunction) => {
 });
 
 app.use(errorMiddleware);
-//1:34
+//2:14
