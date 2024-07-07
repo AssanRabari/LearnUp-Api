@@ -27,12 +27,12 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
     email: {
       type: String,
       required: [true, "Please enter your email"],
-      validate: {
-        validator: function (value: string) {
-          return emailRegexPattern.test(value);
-        },
-        message: "please enter valid email",
-      },
+      // validate: {
+      //   validator: function (value: string) {
+      //     return emailRegexPattern.test(value);
+      //   },
+      //   message: "please enter valid email",
+      // },
       unique: true,
     },
 
