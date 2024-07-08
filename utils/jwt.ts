@@ -9,4 +9,4 @@ interface ITokenOptions {
   sameSite: "lax" | "strict" | "none" | undefined;
   secure?:boolean
 }
-const const sendToken =(user:IUser,statusCode:number)
+// const const sendToken =(user:IUser,statusCode:number)
