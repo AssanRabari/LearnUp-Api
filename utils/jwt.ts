@@ -7,6 +7,35 @@ interface ITokenOptions {
   maxAge: number;
   httpOnly: boolean;
   sameSite: "lax" | "strict" | "none" | undefined;
-  secure?:boolean
+  secure?: boolean;
 }
-// const const sendToken =(user:IUser,statusCode:number)
+const sendToken = (user: IUser, statusCode: number, res: Response) => {
+  const accessToken = user.SignAccessToken();
+  const refreshToken = user.SignRefreshToken();
+  //upload session in redis
+
+  //parse env variables to integrates with fallback values
+  const accessTokenExpire = parseInt(
+    process.env.ACCESS_TOKEN_EXPIRE || "3000",
+    10
+  );
+  const refreshTokenExpire = parseInt(
+    process.env.REFRESH_TOKEN_EXPIRE || "1200",
+    10
+  );
+
+  //options for cookies
+  const accessTokenOptions: ITokenOptions = {
+    expires: new Date(Date.now() + accessTokenExpire * 1000),
+    maxAge: accessTokenExpire * 1000,
+    httpOnly: true,
+    sameSite: "lax",
+  };
+
+  const refreshTokenOptions: ITokenOptions = {
+    expires: new Date(Date.now() + refreshTokenExpire * 1000),
+    maxAge: refreshTokenExpire * 1000,
+    httpOnly: true,
+    sameSite: "lax",
+  };
+};
