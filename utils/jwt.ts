@@ -9,10 +9,13 @@ interface ITokenOptions {
   sameSite: "lax" | "strict" | "none" | undefined;
   secure?: boolean;
 }
-const sendToken = (user: IUser, statusCode: number, res: Response) => {
+
+export const sendToken = (user: IUser, statusCode: number, res: Response) => {
   const accessToken = user.SignAccessToken();
   const refreshToken = user.SignRefreshToken();
+
   //upload session in redis
+  // redis.set(user._id as any, JSON.stringify(user) as any);
 
   //parse env variables to integrates with fallback values
   const accessTokenExpire = parseInt(
@@ -38,4 +41,8 @@ const sendToken = (user: IUser, statusCode: number, res: Response) => {
     httpOnly: true,
     sameSite: "lax",
   };
+
+  res.cookie("accessToken", accessToken, accessTokenOptions);
+  res.cookie("refreshToken", refreshToken, refreshTokenOptions);
+  res.status(statusCode).json({ success: true, user, accessToken });
 };
