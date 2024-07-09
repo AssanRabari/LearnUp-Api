@@ -154,3 +154,18 @@ export const loginUser = catchAsyncError(
     }
   }
 );
+
+//logout user
+export const logoutUser = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.cookie("accessToken", "", { maxAge: 1 });
+      res.cookie("refreshToken", "", { maxAge: 1 });
+      res
+        .status(200)
+        .json({ success: true, message: "User logout successfully" });
+    } catch (error: any) {
+      next(new ErrorHandler(error.message, 400));
+    }
+  }
+);
