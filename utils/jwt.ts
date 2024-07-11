@@ -15,7 +15,7 @@ export const sendToken = (user: IUser, statusCode: number, res: Response) => {
   const refreshToken = user.SignRefreshToken();
 
   //upload session in redis
-  // redis.set(user._id as any, JSON.stringify(user) as any);
+  redis.set(user._id as any, JSON.stringify(user) as any);
 
   //parse env variables to integrates with fallback values
   const accessTokenExpire = parseInt(
