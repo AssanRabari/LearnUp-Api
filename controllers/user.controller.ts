@@ -155,7 +155,7 @@ export const loginUser = catchAsyncError(
         return next(new ErrorHandler("Invalid email and password", 400));
       }
 
-      sendToken(user, 200, res);
+      sendToken(user, 200, res,req);
     } catch (error: any) {
       next(new ErrorHandler(error.message, 400));
     }
@@ -168,8 +168,8 @@ export const logoutUser = catchAsyncError(
     try {
       res.cookie("accessToken", "", { maxAge: 1 });
       res.cookie("refreshToken", "", { maxAge: 1 });
-      const userId = String(req?.user?.id);
-      redis.del(userId)
+      // const userId = String(req?.body?._id);
+      redis.del("userInfo")
       res
         .status(200)
         .json({ success: true, message: "User logout successfully" });
@@ -225,9 +225,8 @@ export const logoutUser = catchAsyncError(
 export const getUserInfo = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // console.log(req.user)
-      // const userId = req.user?._id;
-      getUserById("userId" as any, res);
+      const userId = req.body?._id;
+      getUserById(userId as any, res);
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
     }

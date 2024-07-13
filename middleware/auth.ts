@@ -2,7 +2,8 @@ require("dotenv").config();
 import { Request, Response, NextFunction } from "express";
 import { catchAsyncError } from "./catchAsyncError";
 import ErrorHandler from "../utils/ErrorHandler";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { IUser } from "../models/user.model";
 import { redis } from "../utils/redis";
 export const isAuthenticated = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -14,16 +15,16 @@ export const isAuthenticated = catchAsyncError(
     }
     const decoded = jwt.verify(
       access_token,
-      process.env.ACCESS_TOKEN as string
-    );
+      process.env.ACCCESS_TOKEN as string
+    ) as JwtPayload;
     if (!decoded) {
       return next(new ErrorHandler("Access token is not valid", 400));
     }
-    // const user = await redis.get(decoded.id as string);
+    const user = await redis.get("userInfo");
     if (!user) {
       return next(new ErrorHandler("user not found", 400));
     }
-    req.user = JSON.parse(user);
+    req.body = user as any;
     next();
   }
 );
@@ -31,10 +32,10 @@ export const isAuthenticated = catchAsyncError(
 //authorize roles
 export const authorizeRoles = (...roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user?.role || "") {
+    if (!req.body?.role || "") {
       return next(
         new ErrorHandler(
-          `Role: ${req.user?.role} is not allowed to access this resource`,
+          `Role: ${req.body?.role} is not allowed to access this resource`,
           400
         )
       );

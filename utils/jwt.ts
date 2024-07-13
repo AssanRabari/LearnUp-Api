@@ -11,7 +11,7 @@ interface ITokenOptions {
 }
 //parse env variables to integrates with fallback values
 const accessTokenExpire = parseInt(
-  process.env.ACCESS_TOKEN_EXPIRE || "3000",
+  process.env.ACCCESS_TOKEN_EXPIRE || "3000",
   10
 );
 const refreshTokenExpire = parseInt(
@@ -34,14 +34,15 @@ export const refreshTokenOptions: ITokenOptions = {
   sameSite: "lax",
 };
 
-export const sendToken = (user: IUser, statusCode: number, res: Response) => {
+export const sendToken = (user: IUser, statusCode: number, res: Response,req:Request) => {
   const accessToken = user.SignAccessToken();
   const refreshToken = user.SignRefreshToken();
 
-  //upload session in redis
-  redis.set(user._id as any, JSON.stringify(user) as any);
+  //uploading session in redis
+  redis.set("userInfo", JSON.stringify(user) as any);
 
   res.cookie("accessToken", accessToken, accessTokenOptions);
   res.cookie("refreshToken", refreshToken, refreshTokenOptions);
+  req = user as any;
   res.status(statusCode).json({ success: true, user, accessToken });
 };
