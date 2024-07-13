@@ -3,11 +3,18 @@ import { Request, Response, NextFunction } from "express";
 import userModel, { IUser } from "../models/user.model";
 import ErrorHandler from "../utils/ErrorHandler";
 import { catchAsyncError } from "../middleware/catchAsyncError";
-import jwt, { Secret } from "jsonwebtoken";
+import jwt, { JwtPayload, Secret } from "jsonwebtoken";
 import ejs from "ejs";
 import path from "path";
 import sendMail from "../utils/sendMail";
-import { sendToken } from "../utils/jwt";
+import {
+  accessTokenOptions,
+  refreshTokenOptions,
+  sendToken,
+} from "../utils/jwt";
+import { decode } from "punycode";
+import { redis } from "../utils/redis";
+import { getUserById } from "../services/user.service";
 
 //register user
 interface IRegistrationBody {
@@ -148,7 +155,7 @@ export const loginUser = catchAsyncError(
         return next(new ErrorHandler("Invalid email and password", 400));
       }
 
-      sendToken(user, 200, res);
+      sendToken(user, 200, res,req);
     } catch (error: any) {
       next(new ErrorHandler(error.message, 400));
     }
@@ -161,12 +168,67 @@ export const logoutUser = catchAsyncError(
     try {
       res.cookie("accessToken", "", { maxAge: 1 });
       res.cookie("refreshToken", "", { maxAge: 1 });
-      // redis.del(req.user.id)
+      // const userId = String(req?.body?._id);
+      redis.del("userInfo")
       res
         .status(200)
         .json({ success: true, message: "User logout successfully" });
     } catch (error: any) {
       next(new ErrorHandler(error.message, 400));
+    }
+  }
+);
+
+//update access token
+// export const updateAccessToken = catchAsyncError(
+//   async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//       const refresh_token = req.cookies.refreshToken as string;
+//       const decoded = jwt.verify(
+//         refresh_token,
+//         process.env.REFRESH_TOKEN as string
+//       ) as JwtPayload;
+
+//       const message = "Could not refresh token";
+//       if (!decoded) {
+//         return next(new ErrorHandler(message, 400));
+//       }
+
+//       const session = redis.get(decoded.id as string);
+//       if (!session) {
+//         return next(new ErrorHandler(message, 400));
+//       }
+//       const user = JSON.parse(session);
+
+//       const accessToken = jwt.sign(
+//         { id: user._id },
+//         process.env.ACCCESS_TOKEN as string,
+//         { expiresIn: "5m" }
+//       );
+
+//       const refreshToken = jwt.sign(
+//         { id: user._id },
+//         process.env.REFRESH_TOKEN as string,
+//         { expiresIn: "3d" }
+//       );
+//       res.cookie("accessToken", accessToken, accessTokenOptions);
+//       res.cookie("refreshToken", refreshToken, refreshTokenOptions);
+
+//       res.status(2000).json({ status: "success", accessToken });
+//     } catch (error: any) {
+//       return next(new ErrorHandler(error.message, 400));
+//     }
+//   }
+// );
+
+//get user Info
+export const getUserInfo = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.body?._id;
+      getUserById(userId as any, res);
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
     }
   }
 );
