@@ -234,3 +234,26 @@ export const getUserInfo = catchAsyncError(
     }
   }
 );
+
+//social auth
+interface ISocialAuth {
+  name: string;
+  email: string;
+  avatar: string;
+}
+export const socialAuth = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { name, email, avatar } = req.body as ISocialAuth;
+      const user = await userModel.findOne({ email });
+      if (!user) {
+        const newUser = await userModel.create({ name, email, avatar });
+        sendToken(newUser, 200, res, req);
+      } else {
+        sendToken(user, 200, res, req);
+      }
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
+    }
+  }
+);
