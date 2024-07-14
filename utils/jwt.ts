@@ -2,6 +2,8 @@ require("dotenv").config();
 import { Request, Response, NextFunction } from "express";
 import { IUser } from "../models/user.model";
 import { redis } from "./redis";
+import { IGetUserAuthInfoRequest } from "../@types/custom";
+
 interface ITokenOptions {
   expires: Date;
   maxAge: number;
@@ -34,7 +36,7 @@ export const refreshTokenOptions: ITokenOptions = {
   sameSite: "lax",
 };
 
-export const sendToken = (user: IUser, statusCode: number, res: Response,req:Request) => {
+export const sendToken = (user: IUser, statusCode: number, res: Response,req:IGetUserAuthInfoRequest) => {
   const accessToken = user.SignAccessToken();
   const refreshToken = user.SignRefreshToken();
 
@@ -43,6 +45,6 @@ export const sendToken = (user: IUser, statusCode: number, res: Response,req:Req
 
   res.cookie("accessToken", accessToken, accessTokenOptions);
   res.cookie("refreshToken", refreshToken, refreshTokenOptions);
-  req = user as any;
+  req.user = user as any;
   res.status(statusCode).json({ success: true, user, accessToken });
 };

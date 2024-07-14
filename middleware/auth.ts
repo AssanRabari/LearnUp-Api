@@ -5,8 +5,10 @@ import ErrorHandler from "../utils/ErrorHandler";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { IUser } from "../models/user.model";
 import { redis } from "../utils/redis";
+import {IGetUserAuthInfoRequest} from "../@types/custom";
+
 export const isAuthenticated = catchAsyncError(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
     const access_token = req.cookies.accessToken;
     if (!access_token) {
       return next(
@@ -24,18 +26,18 @@ export const isAuthenticated = catchAsyncError(
     if (!user) {
       return next(new ErrorHandler("user not found", 400));
     }
-    req.body = user as any;
+    req.user = user as any;
     next();
   }
 );
 
 //authorize roles
 export const authorizeRoles = (...roles: string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.body?.role || "") {
+  return (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
+    if (!req.user?.role || "") {
       return next(
         new ErrorHandler(
-          `Role: ${req.body?.role} is not allowed to access this resource`,
+          `Role: ${req.user?.role} is not allowed to access this resource`,
           400
         )
       );
