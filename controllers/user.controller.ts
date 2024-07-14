@@ -7,6 +7,7 @@ import jwt, { JwtPayload, Secret } from "jsonwebtoken";
 import ejs from "ejs";
 import path from "path";
 import sendMail from "../utils/sendMail";
+import cloudinary from "cloudinary";
 import {
   accessTokenOptions,
   refreshTokenOptions,
@@ -15,6 +16,7 @@ import {
 import { decode } from "punycode";
 import { redis } from "../utils/redis";
 import { getUserById } from "../services/user.service";
+import { IGetUserAuthInfoRequest } from "../@types/custom";
 
 //register user
 interface IRegistrationBody {
@@ -137,7 +139,7 @@ interface ILoginRequest {
   password: string;
 }
 export const loginUser = catchAsyncError(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
     try {
       const { email, password } = req.body as ILoginRequest;
 
@@ -181,7 +183,7 @@ export const logoutUser = catchAsyncError(
 
 // update access token
 export const updateAccessToken = catchAsyncError(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
     try {
       const refresh_token = req.cookies.refreshToken as string;
       const decoded = jwt.verify(
@@ -212,7 +214,7 @@ export const updateAccessToken = catchAsyncError(
         process.env.REFRESH_TOKEN as string,
         { expiresIn: "3d" }
       );
-
+      req.user = user as any;
       res.cookie("accessToken", accessToken, accessTokenOptions);
       res.cookie("refreshToken", refreshToken, refreshTokenOptions);
 
@@ -225,9 +227,9 @@ export const updateAccessToken = catchAsyncError(
 
 //get user Info
 export const getUserInfo = catchAsyncError(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
     try {
-      const userId = req.body?._id;
+      const userId = req.user?._id;
       getUserById(userId as any, res);
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
@@ -242,7 +244,7 @@ interface ISocialAuth {
   avatar: string;
 }
 export const socialAuth = catchAsyncError(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
     try {
       const { name, email, avatar } = req.body as ISocialAuth;
       const user = await userModel.findOne({ email });
@@ -253,6 +255,119 @@ export const socialAuth = catchAsyncError(
         sendToken(user, 200, res, req);
       }
     } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
+    }
+  }
+);
+
+//update user info
+interface IUpdateUserInfo {
+  name?: string;
+  email?: string;
+}
+export const updateUserInfo = catchAsyncError(
+  async (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
+    try {
+      const { name, email } = req.body as IUpdateUserInfo;
+
+      const userId = req.user._id;
+      const user = await userModel.findById(userId);
+
+      if (email && user) {
+        const isEmailExist = await userModel.findOne({ email });
+        if (isEmailExist) {
+          return next(new ErrorHandler("Email already exists", 400));
+        }
+        user.email = email;
+      }
+      if (name && user) {
+        user.name = name;
+      }
+      await user?.save();
+      await redis.set("userInfo", JSON.stringify(user));
+      res.status(201).json({ success: true, user });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
+    }
+  }
+);
+
+//update user password
+interface IUpdateUserPassword {
+  oldPassword: string;
+  newPassword: string;
+}
+export const updateUserPassword = catchAsyncError(
+  async (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
+    try {
+      const { oldPassword, newPassword } = req.body as IUpdateUserPassword;
+
+      if (!oldPassword && !newPassword) {
+        return next(new ErrorHandler("Please enter old and new password", 400));
+      }
+
+      const user = await userModel.findById(req?.user?._id).select("+password");
+
+      if (user?.password === undefined) {
+        return next(new ErrorHandler("Invalid user", 400));
+      }
+
+      const isPasswordMatch = await user?.comparePassword(oldPassword);
+
+      if (!isPasswordMatch) {
+        return next(new ErrorHandler("Invalid old password", 400));
+      }
+
+      user.password = newPassword;
+
+      await user.save();
+      await redis.set("userInfo", user as any);
+
+      res.status(201).json({ success: true, user });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
+    }
+  }
+);
+
+//upadate user avatar
+interface IUpdateUserAvatar {
+  avatar: string;
+}
+export const updateUserAvatar = catchAsyncError(
+  async (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
+    try {
+      const { avatar } = req.body as IUpdateUserAvatar;
+
+      const userId = req.user?._id;
+
+      const user = await userModel.findById(userId);
+
+      if (avatar && user) {
+        //if user have a avatar
+        if (user?.avatar?.public_id) {
+          await cloudinary.v2.uploader.destroy(user?.avatar?.public_id);
+
+          const myCloud = await cloudinary.v2.uploader.upload(avatar, {
+            folder: "avatars",
+            width: 170,
+          });
+          user.avatar = { public_id: myCloud.public_id, url: myCloud.url };
+        } else {
+          const myCloud = await cloudinary.v2.uploader.upload(avatar, {
+            folder: "avatars",
+            width: 170,
+          });
+          user.avatar = { public_id: myCloud.public_id, url: myCloud.url };
+        }
+      }
+
+      await user?.save();
+
+      await redis.set("userInfo", user as any);
+
+      res.status(200).json({ success: true, user });
+    } catch (error:any) {
       return next(new ErrorHandler(error.message, 400));
     }
   }
