@@ -271,7 +271,7 @@ export const updateUserInfo = catchAsyncError(
 
       const userId = req.user._id;
       const user = await userModel.findById(userId);
-      
+
       if (email && user) {
         const isEmailExist = await userModel.findOne({ email });
         if (isEmailExist) {
@@ -284,6 +284,44 @@ export const updateUserInfo = catchAsyncError(
       }
       await user?.save();
       await redis.set("userInfo", JSON.stringify(user));
+      res.status(201).json({ success: true, user });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
+    }
+  }
+);
+
+//update user password
+interface IUpdateUserPassword {
+  oldPassword: string;
+  newPassword: string;
+}
+export const updateUserPassword = catchAsyncError(
+  async (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
+    try {
+      const { oldPassword, newPassword } = req.body as IUpdateUserPassword;
+
+      if (!oldPassword && !newPassword) {
+        return next(new ErrorHandler("Please enter old and new password", 400));
+      }
+
+      const user = await userModel.findById(req?.user?._id).select("+password");
+
+      if (user?.password === undefined) {
+        return next(new ErrorHandler("Invalid user", 400));
+      }
+
+      const isPasswordMatch = await user?.comparePassword(oldPassword);
+
+      if (!isPasswordMatch) {
+        return next(new ErrorHandler("Invalid old password", 400));
+      }
+
+      user.password = newPassword;
+
+      await user.save();
+      await redis.set("userInfo",user as any)
+      
       res.status(201).json({ success: true, user });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
