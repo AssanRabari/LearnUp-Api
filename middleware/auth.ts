@@ -5,7 +5,7 @@ import ErrorHandler from "../utils/ErrorHandler";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { IUser } from "../models/user.model";
 import { redis } from "../utils/redis";
-import {IGetUserAuthInfoRequest} from "../@types/custom";
+import { IGetUserAuthInfoRequest } from "../@types/custom";
 
 export const isAuthenticated = catchAsyncError(
   async (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
@@ -34,7 +34,7 @@ export const isAuthenticated = catchAsyncError(
 //authorize roles
 export const authorizeRoles = (...roles: string[]) => {
   return (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
-    if (!req.user?.role || "") {
+    if (!req.user?.role || !roles.includes(req.user.role)) {
       return next(
         new ErrorHandler(
           `Role: ${req.user?.role} is not allowed to access this resource`,
@@ -42,6 +42,6 @@ export const authorizeRoles = (...roles: string[]) => {
         )
       );
     }
-    next();
+    return next();
   };
 };
