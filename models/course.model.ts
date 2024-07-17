@@ -67,7 +67,6 @@ const commentSchema = new Schema<IComment>({
 
 const courseDataSchema = new Schema<ICourseData>({
   videoUrl: String,
-  videoThumbnail: Object,
   title: String,
   videoSection: String,
   description: String,
@@ -97,11 +96,9 @@ const courseSchema = new Schema<ICourse>({
   thumbnail: {
     public_id: {
       type: String,
-      required: true,
     },
     url: {
       type: String,
-      required: true,
     },
   },
   tags: {
@@ -118,12 +115,12 @@ const courseSchema = new Schema<ICourse>({
   },
   benefits: [
     {
-      type: String,
+      title: String,
     },
   ],
   prerequisities: [
     {
-      type: String,
+      title: String,
     },
   ],
   reviews: [reviewSchema],
