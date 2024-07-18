@@ -63,7 +63,7 @@ export const editCourse = catchAsyncError(
   }
 );
 
-//Get single course
+//Get single course --without buying
 export const getSingleCourse = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -71,6 +71,23 @@ export const getSingleCourse = catchAsyncError(
 
       const course = await courseModel
         .findById(courseId)
+        .select(
+          "-courseData.videoUrl -courseData.suggestion -courseData.question  -courseData.links"
+        );
+
+      res.status(201).json({ success: true, course });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
+    }
+  }
+);
+
+//Get all courses --without buying
+export const getAllCourses = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const course = await courseModel
+        .find()
         .select(
           "-courseData.videoUrl -courseData.suggestion -courseData.question  -courseData.links"
         );
