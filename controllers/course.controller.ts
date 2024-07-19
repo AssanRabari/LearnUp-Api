@@ -5,6 +5,7 @@ import cloudinary from "cloudinary";
 import { createCourseService } from "../services/course.service";
 import courseModel from "../models/course.model";
 import { redis } from "../utils/redis";
+import { IGetUserAuthInfoRequest } from "../@types/custom";
 
 //upload course
 export const uploadCourse = catchAsyncError(
@@ -112,6 +113,34 @@ export const getAllCourses = catchAsyncError(
 
         res.status(201).json({ success: true, courses });
       }
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
+    }
+  }
+);
+
+//Get course --for authorized users
+export const getCourseByUser = catchAsyncError(
+  async (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
+    try {
+      const userCourseList = req?.user?.courses;
+      const courseId = req.params.id;
+      
+      const courseExists = userCourseList.find(
+        (course: any) => course._id.toString() === courseId
+      );
+
+      if (!courseExists) {
+        return next(
+          new ErrorHandler("Your are not eligible to access this course", 404)
+        );
+      }
+
+      const course = await courseModel.findById(courseId);
+
+      const courseData = course?.courseData;
+
+      res.status(201).json({ success: true, courseData });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
     }
