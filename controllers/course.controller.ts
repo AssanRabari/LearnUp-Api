@@ -125,9 +125,9 @@ export const getCourseByUser = catchAsyncError(
     try {
       const userCourseList = req?.user?.courses;
       const courseId = req.params.id;
-      
+
       const courseExists = userCourseList.find(
-        (course: any) => course._id.toString() === courseId
+        (course: any) => course._id.toString() === courseId.toString()
       );
 
       if (!courseExists) {
@@ -139,7 +139,7 @@ export const getCourseByUser = catchAsyncError(
       const course = await courseModel.findById(courseId);
 
       const courseData = course?.courseData;
-
+      
       res.status(201).json({ success: true, courseData });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
