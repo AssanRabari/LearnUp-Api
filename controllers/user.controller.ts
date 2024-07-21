@@ -176,7 +176,7 @@ export const logoutUser = catchAsyncError(
         .status(200)
         .json({ success: true, message: "User logout successfully" });
     } catch (error: any) {
-      next(new ErrorHandler(error.message, 400));
+      next(new ErrorHandler(error.message, 500));
     }
   }
 );
@@ -273,6 +273,10 @@ export const updateUserInfo = catchAsyncError(
       const userId = req.user._id;
       const user = await userModel.findById(userId);
 
+      if (!user) {
+        return next(new ErrorHandler("User not found", 404));
+      }
+
       if (email && user) {
         const isEmailExist = await userModel.findOne({ email });
         if (isEmailExist) {
@@ -280,12 +284,16 @@ export const updateUserInfo = catchAsyncError(
         }
         user.email = email;
       }
+
       if (name && user) {
         user.name = name;
       }
+
       await user?.save();
+
       await redis.set("userInfo", JSON.stringify(user));
-      res.status(201).json({ success: true, user });
+      
+      res.status(200).json({ success: true, user });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
     }
@@ -308,6 +316,10 @@ export const updateUserPassword = catchAsyncError(
 
       const user = await userModel.findById(req?.user?._id).select("+password");
 
+      if (!user) {
+        return next(new ErrorHandler("User not found", 404));
+      }
+
       if (user?.password === undefined) {
         return next(new ErrorHandler("Invalid user", 400));
       }
@@ -323,7 +335,7 @@ export const updateUserPassword = catchAsyncError(
       await user.save();
       await redis.set("userInfo", user as any);
 
-      res.status(201).json({ success: true, user });
+      res.status(200).json({ success: true, user });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
     }
@@ -342,6 +354,10 @@ export const updateUserAvatar = catchAsyncError(
       const userId = req.user?._id;
 
       const user = await userModel.findById(userId);
+
+      if (!user) {
+        return next(new ErrorHandler("User not found", 404));
+      }
 
       if (avatar && user) {
         //if user have a avatar
@@ -367,7 +383,7 @@ export const updateUserAvatar = catchAsyncError(
       await redis.set("userInfo", user as any);
 
       res.status(200).json({ success: true, user });
-    } catch (error:any) {
+    } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
     }
   }

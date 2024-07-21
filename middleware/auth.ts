@@ -32,13 +32,15 @@ export const isAuthenticated = catchAsyncError(
 );
 
 //authorize roles
-export const authorizeRoles = (...roles: string[]) => {
+export const authorizeRoles = (): any => {
   return (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
-    if (!req.user?.role || !roles.includes(req.user.role)) {
+    const userRoles = (req as any).user?.role;
+
+    if (!userRoles || !userRoles.includes("admin")) {
       return next(
         new ErrorHandler(
-          `Role: ${req.user?.role} is not allowed to access this resource`,
-          400
+          `Role: ${userRoles} is not allowed to access this resource`,
+          403
         )
       );
     }
