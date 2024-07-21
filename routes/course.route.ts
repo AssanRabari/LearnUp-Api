@@ -14,11 +14,10 @@ import {
 } from "../controllers/course.controller";
 
 const courseRouter = express.Router();
-// courseRouter.post("/create-course",isAuthenticated, authorizeRoles("admin"), uploadCourse);
 
-courseRouter.post("/create-course", isAuthenticated, uploadCourse);
+courseRouter.post("/create-course", isAuthenticated, authorizeRoles(), uploadCourse);
 
-courseRouter.put("/edit-course/:id", isAuthenticated, editCourse);
+courseRouter.put("/edit-course/:id", isAuthenticated, authorizeRoles(), editCourse);
 
 courseRouter.get("/get-course/:id", getSingleCourse);
 
@@ -32,7 +31,6 @@ courseRouter.put("/add-answer", isAuthenticated, addAnswer);
 
 courseRouter.put("/add-review/:id", isAuthenticated, addReview);
 
-// authorizeRoles("admin")
-courseRouter.put("/add-reply", isAuthenticated, addReviewReply);
+courseRouter.put("/add-reply", isAuthenticated, authorizeRoles(), addReviewReply);
 
 export default courseRouter;

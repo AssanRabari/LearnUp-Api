@@ -284,11 +284,15 @@ export const updateUserInfo = catchAsyncError(
         }
         user.email = email;
       }
+
       if (name && user) {
         user.name = name;
       }
+
       await user?.save();
+
       await redis.set("userInfo", JSON.stringify(user));
+      
       res.status(200).json({ success: true, user });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
