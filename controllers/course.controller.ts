@@ -28,12 +28,12 @@ export const uploadCourse = catchAsyncError(
       }
       createCourseService(data, res, next);
     } catch (error: any) {
-      return next(new ErrorHandler(error.message, 400));
+      return next(new ErrorHandler(error.message, 500));
     }
   }
 );
 
-//upload course
+//update course
 export const editCourse = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -62,9 +62,13 @@ export const editCourse = catchAsyncError(
         { new: true }
       );
 
-      res.status(201).json({ success: true, course });
+      if (!course) {
+        return next(new ErrorHandler("Course not found", 404));
+      }
+
+      res.status(200).json({ success: true, course });
     } catch (error: any) {
-      return next(new ErrorHandler(error.message, 400));
+      return next(new ErrorHandler(error.message, 500));
     }
   }
 );
@@ -79,7 +83,7 @@ export const getSingleCourse = catchAsyncError(
 
       if (isCacheExist) {
         const course = isCacheExist;
-        res.status(201).json({ success: true, course });
+        res.status(200).json({ success: true, course });
       } else {
         const course = await courseModel
           .findById(courseId)
@@ -89,10 +93,10 @@ export const getSingleCourse = catchAsyncError(
 
         await redis.set(courseId, JSON.stringify(course));
 
-        res.status(201).json({ success: true, course });
+        res.status(200).json({ success: true, course });
       }
     } catch (error: any) {
-      return next(new ErrorHandler(error.message, 400));
+      return next(new ErrorHandler(error.message, 500));
     }
   }
 );
@@ -105,7 +109,7 @@ export const getAllCourses = catchAsyncError(
 
       if (isCacheExist) {
         const course = isCacheExist;
-        res.status(201).json({ success: true, course });
+        res.status(200).json({ success: true, course });
       } else {
         const courses = await courseModel
           .find()
@@ -115,10 +119,10 @@ export const getAllCourses = catchAsyncError(
 
         await redis.set("allCourses", JSON.stringify(courses));
 
-        res.status(201).json({ success: true, courses });
+        res.status(200).json({ success: true, courses });
       }
     } catch (error: any) {
-      return next(new ErrorHandler(error.message, 400));
+      return next(new ErrorHandler(error.message, 500));
     }
   }
 );
@@ -136,17 +140,21 @@ export const getCourseByUser = catchAsyncError(
 
       if (!courseExists) {
         return next(
-          new ErrorHandler("Your are not eligible to access this course", 404)
+          new ErrorHandler("Your are not eligible to access this course", 403)
         );
       }
 
       const course = await courseModel.findById(courseId);
 
+      if (!course) {
+        return next(new ErrorHandler("Course not found", 404));
+      }
+
       const courseData = course?.courseData;
 
-      res.status(201).json({ success: true, courseData });
+      res.status(200).json({ success: true, courseData });
     } catch (error: any) {
-      return next(new ErrorHandler(error.message, 400));
+      return next(new ErrorHandler(error.message, 500));
     }
   }
 );
@@ -163,6 +171,10 @@ export const addQustion = catchAsyncError(
     try {
       const { question, courseId, contentId }: IAddQuestionData = req.body;
       const course = await courseModel.findById(courseId);
+
+      if (!course) {
+        return next(new ErrorHandler("Course not found", 404));
+      }
 
       if (!mongoose.Types.ObjectId.isValid(contentId)) {
         return next(new ErrorHandler("Invalid content Id", 400));
@@ -191,7 +203,7 @@ export const addQustion = catchAsyncError(
 
       res.status(200).json({ success: true, course });
     } catch (error: any) {
-      return next(new ErrorHandler(error.message, 400));
+      return next(new ErrorHandler(error.message, 500));
     }
   }
 );
@@ -210,6 +222,10 @@ export const addAnswer = catchAsyncError(
       const { answer, courseId, contentId, questionId }: IAddAnswerData =
         req.body;
       const course = await courseModel.findById(courseId);
+
+      if (!course) {
+        return next(new ErrorHandler("Course not found", 404));
+      }
 
       if (!mongoose.Types.ObjectId.isValid(contentId)) {
         return next(new ErrorHandler("Invalid content Id", 400));
@@ -264,7 +280,7 @@ export const addAnswer = catchAsyncError(
 
       res.status(200).json({ success: true, course });
     } catch (error: any) {
-      return next(new ErrorHandler(error.message, 400));
+      return next(new ErrorHandler(error.message, 500));
     }
   }
 );
@@ -293,11 +309,15 @@ export const addReview = catchAsyncError(
 
       if (!courseExists) {
         return next(
-          new ErrorHandler("Your are not eligible to access this course", 400)
+          new ErrorHandler("Your are not eligible to access this course", 403)
         );
       }
 
       const course = await courseModel.findById(courseId);
+
+      if (!course) {
+        return next(new ErrorHandler("Course not found", 404));
+      }
 
       const reviewData: any = { user: req.user, comment: review, rating };
 
@@ -324,7 +344,7 @@ export const addReview = catchAsyncError(
 
       res.status(200).json({ success: true, course });
     } catch (error: any) {
-      return next(new ErrorHandler(error.message, 400));
+      return next(new ErrorHandler(error.message, 500));
     }
   }
 );
