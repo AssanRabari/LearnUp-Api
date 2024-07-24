@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import { errorMiddleware } from "./middleware/errorMiddleware";
 import userRouter from "./routes/user.route";
 import courseRouter from "./routes/course.route";
+import orderRouter from "./routes/order.route";
 require("dotenv").config();
 
 //body parser
@@ -29,9 +30,7 @@ app.get("/test", (req: Request, res: Response, next: NextFunction) => {
 });
 
 //routes
-app.use("/api/v1", userRouter);
-
-app.use("/api/v1", courseRouter);
+app.use("/api/v1", userRouter, courseRouter, orderRouter);
 
 app.all("*", (req: Request, res: Response, next: NextFunction) => {
   const err = new Error(`(Route ${req.originalUrl} not found )`) as any;

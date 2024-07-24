@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Order Confirmation</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+      .container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        max-width: 400px;
+        text-align: center;
+      }
+      .container h1 {
+        color: #4caf50;
+      }
+      .container p {
+        margin: 10px 0;
+      }
+      .order-details {
+        text-align: left;
+        margin-top: 20px;
+      }
+      .order-details div {
+        margin-bottom: 10px;
+      }
+      .container a {
+        display: inline-block;
+        margin-top: 15px;
+        padding: 10px 15px;
+        color: #fff;
+        background-color: #4caf50;
+        border: none;
+        border-radius: 5px;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Your LearnUP order Confirmed!</h1>
+      <p>Thank you for purchasing the course: <%= order.name %>!</p>
+      <div class="order-details">
+        <div><strong>Course Name:</strong> <%= order.name %></div>
+        <div><strong>Price:</strong> $<%= order.price %></div>
+        <div><strong>Order Date:</strong> <%= order.Date %></div>
+        <div><strong>Subtotal:</strong> $<%= order.price %></div>
+        <div><strong>Total:</strong> $<%= order.price %></div>
+      </div>
+    </div>
+  </body>
+</html>

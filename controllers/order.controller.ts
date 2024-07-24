@@ -38,13 +38,15 @@ export const createOrder = catchAsyncError(
         return next(new ErrorHandler("Course not found", 404));
       }
 
-      const data: any = { courseId: course._id, userId: user?._id };
-
-      createOder(data, res, next);
+      const data: any = {
+        courseId: course._id,
+        userId: user?._id,
+        payment_info,
+      };
 
       const mailData = {
         order: {
-          _id: course?._id?.slice(0, 6),
+          _id: course?._id?.toString().slice(0, 6),
           name: course.name,
           price: course.price,
           date: new Date().toLocaleDateString("en-US", {
@@ -57,8 +59,38 @@ export const createOrder = catchAsyncError(
 
       const html = await ejs.renderFile(
         path.join(__dirname, "../mails/order-confirmation.ejs"),
-        mailData
+        { order: mailData }
       );
+
+      try {
+        if (user) {
+          await sendMail({
+            email: user.email,
+            subject: "Order Confirmation",
+            template: "order-confirmation.ejs",
+            data: mailData,
+          });
+        }
+      } catch (error: any) {
+        return next(new ErrorHandler(error.message, 500));
+      }
+
+      const courseID: any = course._id;
+      user?.courses?.push(courseID);
+
+      await user?.save();
+
+      await notificationModel.create({
+        user: user?._id,
+        title: "New Order",
+        message: `You have a new order from ${course.name}`,
+      });
+
+      if (course.purchased) {
+        course.purchased += 1;
+      }
+
+      createOder(data, res, next);
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 500));
     }
