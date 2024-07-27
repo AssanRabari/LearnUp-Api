@@ -1,6 +1,7 @@
 import express from "express";
 import {
   activateUser,
+  getAllUsers,
   getUserInfo,
   loginUser,
   logoutUser,
@@ -36,5 +37,7 @@ userRouter.put("/update-user-info", isAuthenticated, updateUserInfo);
 userRouter.put("/update-user-password", isAuthenticated, updateUserPassword);
 
 userRouter.put("/update-user-avatar", isAuthenticated, updateUserAvatar);
+
+userRouter.get("/get-users", isAuthenticated, authorizeRoles(), getAllUsers);
 
 export default userRouter;

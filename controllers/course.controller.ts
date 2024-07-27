@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { catchAsyncError } from "../middleware/catchAsyncError";
 import ErrorHandler from "../utils/ErrorHandler";
 import cloudinary from "cloudinary";
-import { createCourseService } from "../services/course.service";
+import { createCourseService, getAllCoursesService } from "../services/course.service";
 import courseModel from "../models/course.model";
 import { redis } from "../utils/redis";
 import { IGetUserAuthInfoRequest } from "../@types/custom";
@@ -398,6 +398,17 @@ export const addReviewReply = catchAsyncError(
       await course.save();
 
       res.status(200).json({ success: true, course });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  }
+);
+
+//Get all courses --for only admin
+export const getAllCoursesAdmin = catchAsyncError(
+  async (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
+    try {
+      getAllCoursesService(res);
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 500));
     }
