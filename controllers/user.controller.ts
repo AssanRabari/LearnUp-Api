@@ -15,7 +15,7 @@ import {
 } from "../utils/jwt";
 import { decode } from "punycode";
 import { redis } from "../utils/redis";
-import { getUserById } from "../services/user.service";
+import { getAllUsersService, getUserById } from "../services/user.service";
 import { IGetUserAuthInfoRequest } from "../@types/custom";
 
 //register user
@@ -384,7 +384,18 @@ export const updateUserAvatar = catchAsyncError(
 
       res.status(200).json({ success: true, user });
     } catch (error: any) {
-      return next(new ErrorHandler(error.message, 400));
+      return next(new ErrorHandler(error.message, 500));
+    }
+  }
+);
+
+//Get all users --for only admin
+export const getAllUsers = catchAsyncError(
+  async (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
+    try {
+      getAllUsersService(res);
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 500));
     }
   }
 );
