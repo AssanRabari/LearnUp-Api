@@ -420,7 +420,7 @@ export const updateUserRole = catchAsyncError(
 export const deleteUser = catchAsyncError(
   async (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.body;
+      const { id } = req.params;
 
       const user = await userModel.findById(id);
 
