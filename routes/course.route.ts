@@ -15,6 +15,8 @@ import {
   uploadCourse,
 } from "../controllers/course.controller";
 
+import { getCoursesAnalytics } from "../controllers/analytics.controller";
+
 const courseRouter = express.Router();
 
 courseRouter.post("/create-course", isAuthenticated, authorizeRoles(), uploadCourse);
@@ -37,6 +39,6 @@ courseRouter.put("/add-reply", isAuthenticated, authorizeRoles(), addReviewReply
 
 courseRouter.get("/get-all-courses", isAuthenticated, authorizeRoles(), getAllCoursesAdmin);
 
-courseRouter.delete("/delete-course/:id", isAuthenticated, authorizeRoles(), deleteCourse);
+courseRouter.get("/get-courses-analytics", isAuthenticated, authorizeRoles(), getCoursesAnalytics);
 
 export default courseRouter;
