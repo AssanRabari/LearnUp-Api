@@ -2,7 +2,10 @@ import { NextFunction, Request, Response } from "express";
 import { catchAsyncError } from "../middleware/catchAsyncError";
 import ErrorHandler from "../utils/ErrorHandler";
 import cloudinary from "cloudinary";
-import { createCourseService, getAllCoursesService } from "../services/course.service";
+import {
+  createCourseService,
+  getAllCoursesService,
+} from "../services/course.service";
 import courseModel from "../models/course.model";
 import { redis } from "../utils/redis";
 import { IGetUserAuthInfoRequest } from "../@types/custom";
@@ -93,6 +96,7 @@ export const getSingleCourse = catchAsyncError(
           );
 
         await redis.set(courseId, JSON.stringify(course));
+        //await redis.set(courseId, JSON.stringify(course), 'EX', 604800);
 
         res.status(200).json({ success: true, course });
       }
@@ -420,7 +424,7 @@ export const deleteCourse = catchAsyncError(
   async (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      
+
       const course = await courseModel.findById(id);
 
       if (!course) {
@@ -431,8 +435,9 @@ export const deleteCourse = catchAsyncError(
 
       // await redis.del(id)
 
-      res.status(200).json({ success: true, message: "Course deleted successfully" });
-
+      res
+        .status(200)
+        .json({ success: true, message: "Course deleted successfully" });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 500));
     }
