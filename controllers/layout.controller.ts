@@ -82,14 +82,14 @@ export const editLayout = catchAsyncError(
           title,
           subtitle,
         };
-        await LayoutModel.findByIdAndUpdate(bannerData.id, { banner });
+        await LayoutModel.findByIdAndUpdate(bannerData._id, { banner });
       }
 
       if (type === "FAQ") {
         const { faq } = req.body;
         const faqItem = await LayoutModel.findOne({ type: "FAQ" });
         const faqItems = await Promise.all(
-          faq.map(async (item: any) => {
+          faq?.map(async (item: any) => {
             return { question: item.question, answer: item.answer };
           })
         );
@@ -118,6 +118,20 @@ export const editLayout = catchAsyncError(
       res
         .status(200)
         .json({ success: true, message: "Layout updated successfully" });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  }
+);
+
+//get layout by type
+export const getLayoutByType = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { type } = req.body;
+      const layout = await LayoutModel.findOne({type});
+
+      res.status(201).json({ success: true, layout });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 500));
     }
