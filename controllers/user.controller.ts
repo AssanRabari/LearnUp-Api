@@ -203,7 +203,9 @@ export const updateAccessToken = catchAsyncError(
       const session = redis.get("userInfo") as any;
 
       if (!session) {
-        return next(new ErrorHandler(message, 400));
+        return next(
+          new ErrorHandler("Please login to access this resource", 400)
+        );
       }
       const user = session;
 
@@ -218,9 +220,13 @@ export const updateAccessToken = catchAsyncError(
         process.env.REFRESH_TOKEN as string,
         { expiresIn: "3d" }
       );
+
       req.user = user as any;
+
       res.cookie("accessToken", accessToken, accessTokenOptions);
       res.cookie("refreshToken", refreshToken, refreshTokenOptions);
+
+      // await redis.set("userInfo", JSON.stringify(user), "EX",604800)
 
       res.status(200).json({ status: "success", accessToken });
     } catch (error: any) {
@@ -296,7 +302,7 @@ export const updateUserInfo = catchAsyncError(
       await user?.save();
 
       await redis.set("userInfo", JSON.stringify(user));
-      
+
       res.status(200).json({ success: true, user });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
@@ -432,8 +438,9 @@ export const deleteUser = catchAsyncError(
 
       // await redis.del(id)
 
-      res.status(200).json({ success: true, message: "User deleted successfully" });
-
+      res
+        .status(200)
+        .json({ success: true, message: "User deleted successfully" });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 500));
     }
