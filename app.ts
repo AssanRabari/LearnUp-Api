@@ -24,14 +24,6 @@ app.use(
   })
 );
 
-//testing
-app.get("/test", (req: Request, res: Response, next: NextFunction) => {
-  res.status(200).json({
-    success: true,
-    message: "testing api",
-  });
-});
-
 //routes
 
 app.use(
