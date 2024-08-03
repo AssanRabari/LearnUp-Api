@@ -119,18 +119,21 @@ export const activateUser = catchAsyncError(
       if (newUser.activationCode !== activation_code) {
         return next(new ErrorHandler("Invalid activation code", 400));
       }
+
       const { name, email, password } = newUser.user;
+
       const userExist = await userModel.findOne({ email });
       if (userExist) {
         return next(new ErrorHandler("User already exists", 400));
       }
+      
       const user = await userModel.create({
         name,
         email,
         password,
       });
 
-      res.status(201).json({ success: true });
+      res.status(201).json({ success: true, user });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
     }
@@ -322,6 +325,10 @@ export const updateUserPassword = catchAsyncError(
 
       if (!oldPassword && !newPassword) {
         return next(new ErrorHandler("Please enter old and new password", 400));
+      }
+
+      if (oldPassword === newPassword) {
+        return next(new ErrorHandler("Old and new password cannot be same", 400));
       }
 
       const user = await userModel.findById(req?.user?._id).select("+password");

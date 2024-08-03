@@ -92,7 +92,7 @@ export const getSingleCourse = catchAsyncError(
         const course = await courseModel
           .findById(courseId)
           .select(
-            "-courseData.videoUrl -courseData.suggestion -courseData.question  -courseData.links"
+            "-courseData.videoUrl -courseData.suggestion -courseData.questions  -courseData.links"
           );
 
         await redis.set(courseId, JSON.stringify(course));
@@ -119,7 +119,7 @@ export const getAllCourses = catchAsyncError(
         const courses = await courseModel
           .find()
           .select(
-            "-courseData.videoUrl -courseData.suggestion -courseData.question  -courseData.links"
+            "-courseData.videoUrl -courseData.suggestion -courseData.questions  -courseData.links"
           );
 
         await redis.set("allCourses", JSON.stringify(courses));
@@ -195,7 +195,11 @@ export const addQustion = catchAsyncError(
 
       //creating new question object
       const newQuestion: any = {
-        user: req.user,
+        user: {
+          _id: req.user._id,
+          name: req.user.name,
+          courses: req.user.courses,
+        },
         question,
         questionReplies: [],
       };
@@ -260,7 +264,14 @@ export const addAnswer = catchAsyncError(
       }
 
       //adding question to course
-      const newAnswer: any = { user: req.user, answer };
+      const newAnswer: any = {
+        user: {
+          _id: req.user._id,
+          name: req.user.name,
+          courses: req.user.courses,
+        },
+        answer,
+      };
 
       //add this answer to question
       question.questionReplies?.push(newAnswer);
@@ -336,7 +347,15 @@ export const addReview = catchAsyncError(
         return next(new ErrorHandler("Course not found", 404));
       }
 
-      const reviewData: any = { user: req.user, comment: review, rating };
+      const reviewData: any = {
+        user: {
+          _id: req.user._id,
+          name: req.user.name,
+          courses: req.user.courses,
+        },
+        comment: review,
+        rating,
+      };
 
       course?.reviews?.push(reviewData);
 
@@ -352,12 +371,12 @@ export const addReview = catchAsyncError(
 
       await course?.save();
 
-      const notification = {
+      //creating notification
+      await notificationModel.create({
+        user: req?.user?._id,
         title: "New Review Recieved",
         message: `${req.user.name} has given review in ${course?.name}`,
-      };
-
-      //send notification
+      });
 
       res.status(200).json({ success: true, course });
     } catch (error: any) {
