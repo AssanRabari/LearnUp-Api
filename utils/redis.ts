@@ -14,6 +14,8 @@
 import { Redis } from '@upstash/redis'
 
 export const redis = new Redis({
-  url: 'https://winning-platypus-43852.upstash.io',
-  token: 'AatMAAIncDE2ZjE4ZGE4MjNmYWY0OTA3OTY3MGU3NmYyOWI3Y2U2ZnAxNDM4NTI',
+  // url: 'https://winning-platypus-43852.upstash.io',
+  url: 'https://allowed-martin-49838.upstash.io',
+  // token: 'AatMAAIncDE2ZjE4ZGE4MjNmYWY0OTA3OTY3MGU3NmYyOWI3Y2U2ZnAxNDM4NTI',
+  token: 'AcKuAAIjcDFjMzk0MDY5ODRjNjA0YzA3ODZkMjZkM2ZkYmVkNjlkMHAxMA'
 })
