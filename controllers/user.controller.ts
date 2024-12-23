@@ -281,7 +281,7 @@ interface IUpdateUserInfo {
 export const updateUserInfo = catchAsyncError(
   async (req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) => {
     try {
-      const { name, email } = req.body as IUpdateUserInfo;
+      const { name } = req.body as IUpdateUserInfo;
 
       const userId = req.user._id;
       const user = await userModel.findById(userId);
@@ -290,13 +290,13 @@ export const updateUserInfo = catchAsyncError(
         return next(new ErrorHandler("User not found", 404));
       }
 
-      if (email && user) {
-        const isEmailExist = await userModel.findOne({ email });
-        if (isEmailExist) {
-          return next(new ErrorHandler("Email already exists", 400));
-        }
-        user.email = email;
-      }
+      // if (email && user) {
+      //   const isEmailExist = await userModel.findOne({ email });
+      //   if (isEmailExist) {
+      //     return next(new ErrorHandler("Email already exists", 400));
+      //   }
+      //   user.email = email;
+      // }
 
       if (name && user) {
         user.name = name;
